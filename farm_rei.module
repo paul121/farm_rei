@@ -4,3 +4,99 @@
  * @file
  * Farm REI module.
  */
+
+/**
+ * Implements hook_entity_view_alter().
+ */
+function farm_rei_entity_view_alter(&$build, $type) {
+
+  // If the type is not a log, bail.
+  if ($type != 'log' || empty($build['#entity'])) {
+    return;
+  }
+
+  // Alias the log entity.
+  $log = $build['#entity'];
+
+  // Get the logs REI expiration timestamp or NULL.
+  $rei_expiration = farm_rei_log_rei_expiration($log);
+
+  // If the log doesn't have an REI, bail.
+  if (empty($rei_expiration)) {
+    return;
+  }
+
+  // If the REI has already expired, bail.
+  if ($rei_expiration < REQUEST_TIME) {
+    return;
+  }
+
+  // Get an entity metadata wrapper for the log.
+  $log_wrapper = entity_metadata_wrapper('log', $log);
+
+  // Start building a message to display.
+  $message = t('This log defines an active restricted entry');
+
+  // Build area names.
+  $count_areas = count($log_wrapper->field_farm_area);
+  if ($count_areas > 0) {
+
+    // Include first area name.
+    $area_names = $log_wrapper->field_farm_area[0]->name->value();
+
+    // Append (+ # more) if there are multiple areas.
+    if ($count_areas > 1) {
+      $area_names .= ' (+ ' . ($count_areas - 1) . ' ' . t('more') . ')';
+    }
+
+    // Add area names to message.
+    $message .= ' ' . t('in') . ' ' . $area_names;
+  }
+
+  // Format the rei expiration timestamp.
+  $rei_expiration_string = strftime('%b %d, %Y at %r', $rei_expiration);
+
+  // Add expiration to message.
+  $message .= ' ' . t('until @rei_expiration', array('@rei_expiration' => $rei_expiration_string));
+
+  // Set warning message.
+  drupal_set_message($message, 'warning');
+}
+
+/**
+ * Helper function that returns an REI expiration timestamp.
+ *
+ * @param Log $log
+ *   The input log to load REI expiration from.
+ *
+ * @return int|null
+ *   The REI expiration timestamp or NULL if no REI is set.
+ */
+function farm_rei_log_rei_expiration($log) {
+
+  // If not an input log, bail.
+  if ($log->type != 'farm_input') {
+    return NULL;
+  }
+
+  // If the log is not done, bail.
+  if (!$log->done) {
+    return NULL;
+  }
+
+  // Get an entity metadata wrapper.
+  $log_wrapper = entity_metadata_wrapper('log', $log);
+
+  // If no REI is set, bail.
+  if (empty($log_wrapper->field_farm_rei)) {
+    return NULL;
+  }
+
+  // Get the REI days.
+  $rei_days = $log_wrapper->field_farm_rei->value();
+
+  // Build expiration timestamp.
+  $rei_expiration = strtotime('+ ' . $rei_days . ' days', $log->timestamp);
+
+  return $rei_expiration;
+}
