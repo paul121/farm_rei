@@ -23,7 +23,7 @@ function farm_rei_entity_view_alter(&$build, $type) {
     }
 
     // Start a query for input logs.
-    $query = farm_log_query(REQUEST_TIME, TRUE, 'farm_input');
+    $query = farm_log_query(REQUEST_TIME, TRUE, 'farm_input', FALSE);
 
     // Add the log ID field.
     $query->addField('ss_log', 'id');
