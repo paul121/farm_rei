@@ -6,6 +6,55 @@
  */
 
 /**
+ * Implements hook_ENTITY_TYPE_presave().
+ *
+ */
+function farm_rei_log_presave($entity) {
+
+  // If the log is not an input log, bail.
+  if ($entity->type != 'farm_input') {
+    return;
+  }
+
+  // Get an entity metadata wrapper for the log.
+  $log_wrapper = entity_metadata_wrapper('log', $entity);
+
+  // If an REI is already set don't change it.
+  $rei = $log_wrapper->field_farm_rei->value();
+  // Check the field value using isset() so that a value of 0 can override
+  // a materials REI value on the input log.
+  if (isset($rei)) {
+    return;
+  }
+
+  // If there is no farm material reference with the log, bail.
+  if (empty($log_wrapper->field_farm_material->value())) {
+    return;
+  }
+
+  // Save the longest REI defined by materials the log references.
+  $max_rei = 0;
+  foreach ($log_wrapper->field_farm_material as $material) {
+
+    // If the material doesn't have an REI defined, skip it.
+    if (!$material->field_farm_rei->value()) {
+      continue;
+    }
+
+    // Save the longest material REI.
+    $rei_value = $material->field_farm_rei->value();
+    if ($rei_value > $max_rei) {
+      $max_rei = $rei_value;
+    }
+  }
+
+  // Update the log's REI to the largest REI provided by materials.
+  if (!empty($max_rei)) {
+    $log_wrapper->field_farm_rei->set($max_rei);
+  }
+}
+
+/**
  * Implements hook_entity_view_alter().
  */
 function farm_rei_entity_view_alter(&$build, $type) {
