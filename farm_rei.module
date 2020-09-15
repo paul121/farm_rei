@@ -10,6 +10,75 @@
  */
 function farm_rei_entity_view_alter(&$build, $type) {
 
+  // If viewing a taxonomy term that is an area, display a warning message if
+  // an input log defines an active REI.
+  if ($type == 'taxonomy_term' && !empty($build['#term'])) {
+
+    // Alias the term and tid.
+    $term = $build['#term'];
+
+    // If the term is not in the farm_areas vocabulary, bail.
+    if ($term->vocabulary_machine_name != 'farm_areas') {
+      return;
+    }
+
+    // Start a query for input logs.
+    $query = farm_log_query(REQUEST_TIME, TRUE, 'farm_input');
+
+    // Add the log ID field.
+    $query->addField('ss_log', 'id');
+
+    // Add tag to identify where this came from.
+    $query->addTag('farm_rei_entity_view_alter');
+
+    // Join in the area field. Use an inner join to exclude logs that do not
+    // have an area reference.
+    $query->innerJoin('field_data_field_farm_area', 'ss_fdffa', "ss_fdffa.entity_type = 'log' AND ss_fdffa.entity_id = ss_log.id AND ss_fdffa.deleted = 0");
+
+    // Only include logs that reference the area.
+    $query->where('ss_fdffa.field_farm_area_tid = ' . $term->tid);
+
+    $result = $query->execute();
+    foreach ($result as $row) {
+
+      // If the log ID is empty, skip it.
+      if (empty($row->id)) {
+        continue;
+      }
+
+      // Load the log.
+      $log = log_load($row->id);
+
+      // Check if the log sets an REI.
+      $rei_expiration = farm_rei_log_rei_expiration($log);
+
+      // If the log doesn't set an REI, or it has expired, skip it.
+      if (empty($rei_expiration) || $rei_expiration < REQUEST_TIME) {
+        continue;
+      }
+
+      // Format REI expiration timestamp.
+      $rei_expiration_string = strftime('%b %d, %Y at %r', $rei_expiration);
+
+      // Get the log URL and name.
+      $log_uri = entity_uri('log', $log);
+      $log_path = $log_uri['path'];
+      $log_name = entity_label('log', $log);
+
+      // Display a warning message referencing the input log.
+      $args = array(
+        '@rei_expiration' => $rei_expiration_string,
+        '!log_path' => url($log_path),
+        '%log_name' => $log_name,
+      );
+      $message = t('This area has restricted-entry until @rei_expiration. See <a href="!log_path">%log_name</a> for details.', $args);
+      drupal_set_message($message, 'warning');
+    }
+
+    // Return after handling an area view.
+    return;
+  }
+
   // If the type is not a log, bail.
   if ($type != 'log' || empty($build['#entity'])) {
     return;
