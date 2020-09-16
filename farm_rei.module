@@ -65,6 +65,43 @@ function farm_rei_entity_view_alter(&$build, $type) {
   // Start a list of area IDs to check.
   $area_tids = array();
 
+  // If the type is a log, display a message if it references areas that have
+  // an active REI. If the log itself defines an REI, display another message.
+  if ($type == 'log' && !empty($build['#entity'])) {
+
+    // Alias the log entity.
+    $log = $build['#entity'];
+
+    // Get an entity metadata wrapper for the log.
+    $log_wrapper = entity_metadata_wrapper('log', $log);
+
+    // Save all areas the log references.
+    foreach ($log_wrapper->field_farm_area as $area) {
+      $area_tids[] = $area->tid->value();
+    }
+
+    // Check if it is an input log marked as DONE.
+    if ($log->type == 'farm_input' && $log->done) {
+
+      // Check if the log sets an REI.
+      $rei_expiration = farm_rei_log_rei_expiration($log);
+      if (!empty($rei_expiration)) {
+
+        // Format timestamps.
+        $rei_start_string = strftime('%b %d, %Y at %r', $log->timestamp);
+        $rei_expiration_string = strftime('%b %d, %Y at %r', $rei_expiration);
+
+        // Add expiration to message.
+        $args = array(
+          '@rei_start' => $rei_start_string,
+          '@rei_expiration' => $rei_expiration_string,
+        );
+        $message = t('This log defines a restricted entry interval from @rei_start until @rei_expiration', $args);
+        drupal_set_message($message, 'warning');
+      }
+    }
+  }
+
   // If viewing an asset, display a message if its current location has
   // an active REI.
   if ($type == 'farm_asset' && !empty($build['#entity'])) {
@@ -154,58 +191,6 @@ function farm_rei_entity_view_alter(&$build, $type) {
       drupal_set_message($message, 'warning');
     }
   }
-
-  // If the type is not a log, bail.
-  if ($type != 'log' || empty($build['#entity'])) {
-    return;
-  }
-
-  // Alias the log entity.
-  $log = $build['#entity'];
-
-  // Get the logs REI expiration timestamp or NULL.
-  $rei_expiration = farm_rei_log_rei_expiration($log);
-
-  // If the log doesn't have an REI, bail.
-  if (empty($rei_expiration)) {
-    return;
-  }
-
-  // If the REI has already expired, bail.
-  if ($rei_expiration < REQUEST_TIME) {
-    return;
-  }
-
-  // Get an entity metadata wrapper for the log.
-  $log_wrapper = entity_metadata_wrapper('log', $log);
-
-  // Start building a message to display.
-  $message = t('This log defines an active restricted entry');
-
-  // Build area names.
-  $count_areas = count($log_wrapper->field_farm_area);
-  if ($count_areas > 0) {
-
-    // Include first area name.
-    $area_names = $log_wrapper->field_farm_area[0]->name->value();
-
-    // Append (+ # more) if there are multiple areas.
-    if ($count_areas > 1) {
-      $area_names .= ' (+ ' . ($count_areas - 1) . ' ' . t('more') . ')';
-    }
-
-    // Add area names to message.
-    $message .= ' ' . t('in') . ' ' . $area_names;
-  }
-
-  // Format the rei expiration timestamp.
-  $rei_expiration_string = strftime('%b %d, %Y at %r', $rei_expiration);
-
-  // Add expiration to message.
-  $message .= ' ' . t('until @rei_expiration', array('@rei_expiration' => $rei_expiration_string));
-
-  // Set warning message.
-  drupal_set_message($message, 'warning');
 }
 
 /**
