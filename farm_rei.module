@@ -100,6 +100,21 @@ function farm_rei_entity_view_alter(&$build, $type) {
   // Get all input logs that reference saved areas.
   if (!empty($area_tids)) {
 
+    // Include child & parent areas.
+    foreach ($area_tids as $tid) {
+
+      // Load child areas.
+      $child_areas = taxonomy_get_children($tid);
+
+      // Load parent areas.
+      $parent_areas = taxonomy_get_parents($tid);
+
+      // Include all child & parent area tids.
+      foreach (array_merge($parent_areas, $child_areas) as $area) {
+        $area_tids[] = $area->tid;
+      }
+    }
+
     // Start a query for input logs.
     $query = farm_log_query(REQUEST_TIME, TRUE, 'farm_input', FALSE);
 
