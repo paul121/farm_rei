@@ -137,14 +137,19 @@ function farm_rei_entity_view_alter(&$build, $type) {
   // Get all input logs that reference saved areas.
   if (!empty($area_tids)) {
 
+    // Load the farm_areas vocabulary.
+    $area_vocab = taxonomy_vocabulary_machine_name_load('farm_areas');
+
     // Include child & parent areas.
     foreach ($area_tids as $tid) {
 
       // Load child areas.
-      $child_areas = taxonomy_get_children($tid);
+      // Note: Use taxonomy_get_tree() because taxonomy_get_children()
+      // only loads 1 layer deep.
+      $child_areas = taxonomy_get_tree($area_vocab->vid, $tid);
 
       // Load parent areas.
-      $parent_areas = taxonomy_get_parents($tid);
+      $parent_areas = taxonomy_get_parents_all($tid);
 
       // Include all child & parent area tids.
       foreach (array_merge($parent_areas, $child_areas) as $area) {
