@@ -80,11 +80,11 @@ function farm_rei_entity_view_alter(&$build, $type) {
       $area_tids[] = $area->tid->value();
     }
 
-    // Check if it is an input log marked as DONE.
-    if ($log->type == 'farm_input' && $log->done) {
+    // Check if it is an input log.
+    if ($log->type == 'farm_input') {
 
       // Check if the log sets an REI.
-      $rei_expiration = farm_rei_log_rei_expiration($log);
+      $rei_expiration = farm_rei_log_rei_expiration($log, FALSE);
       if (!empty($rei_expiration)) {
 
         // Format timestamps.
@@ -158,7 +158,7 @@ function farm_rei_entity_view_alter(&$build, $type) {
     }
 
     // Start a query for input logs.
-    $query = farm_log_query(REQUEST_TIME, TRUE, 'farm_input', FALSE);
+    $query = farm_log_query(0, TRUE, 'farm_input', FALSE);
 
     // Add the log ID field.
     $query->addField('ss_log', 'id');
@@ -189,7 +189,7 @@ function farm_rei_entity_view_alter(&$build, $type) {
   foreach ($logs as $log) {
 
     // Build a message.
-    $message = farm_rei_build_area_message($log);
+    $message = farm_rei_build_area_message($log, FALSE);
 
     // If it exists, display the message.
     if (!empty($message)) {
@@ -203,17 +203,19 @@ function farm_rei_entity_view_alter(&$build, $type) {
  *
  * @param Log $log
  *   The input log to load REI expiration from.
+ * @param bool $done
+ *   Only consider logs that are done. Defaults to TRUE.
  *
  * @return string
  *   The REI message.
  */
-function farm_rei_build_area_message($log) {
+function farm_rei_build_area_message($log, $done = TRUE) {
 
   // Start with an empty message.
   $message = '';
 
   // Check if the log sets an REI.
-  $rei_expiration = farm_rei_log_rei_expiration($log);
+  $rei_expiration = farm_rei_log_rei_expiration($log, $done);
 
   // If the log doesn't set an REI, or it has expired, bail.
   if (empty($rei_expiration) || $rei_expiration < REQUEST_TIME) {
@@ -239,7 +241,8 @@ function farm_rei_build_area_message($log) {
     $area_names .= ' (+ ' . ($count_areas - 1) . ' ' . t('more') . ')';
   }
 
-  // Format REI expiration timestamp.
+  // Format timestamps.
+  $rei_start_string = strftime('%b %d, %Y at %r', $log->timestamp);
   $rei_expiration_string = strftime('%b %d, %Y at %r', $rei_expiration);
 
   // Get the log URL and name.
@@ -250,11 +253,22 @@ function farm_rei_build_area_message($log) {
   // Build the message.
   $args = array(
     '@area_names' => $area_names,
+    '@rei_start' => $rei_start_string,
     '@rei_expiration' => $rei_expiration_string,
     '!log_path' => url($log_path),
     '%log_name' => $log_name,
   );
-  return t('There is restricted-entry in @area_names until @rei_expiration. See <a href="!log_path">%log_name</a>', $args);
+
+  // Build message depending if is the REI is active.
+  $active_rei = $log->timestamp <= REQUEST_TIME;
+  if ($active_rei) {
+    $message = t('There is restricted-entry in @area_names until @rei_expiration. See <a href="!log_path">%log_name</a>', $args);
+  }
+  else {
+    $message = t('There is planned restricted-entry in @area_names from @rei_start until @rei_expiration. See <a href="!log_path">%log_name</a>', $args);
+  }
+
+  return $message;
 }
 
 /**
@@ -262,11 +276,13 @@ function farm_rei_build_area_message($log) {
  *
  * @param Log $log
  *   The input log to load REI expiration from.
+ * @param bool $done
+ *   Only consider logs that are done. Defaults to TRUE.
  *
  * @return int|null
  *   The REI expiration timestamp or NULL if no REI is set.
  */
-function farm_rei_log_rei_expiration($log) {
+function farm_rei_log_rei_expiration($log, $done = TRUE) {
 
   // If not an input log, bail.
   if ($log->type != 'farm_input') {
@@ -274,7 +290,7 @@ function farm_rei_log_rei_expiration($log) {
   }
 
   // If the log is not done, bail.
-  if (!$log->done) {
+  if ($done && !$log->done) {
     return NULL;
   }
 
