@@ -59,6 +59,28 @@ function farm_rei_log_presave($entity) {
  */
 function farm_rei_entity_view_alter(&$build, $type) {
 
+  // Start a list of logs to check.
+  $logs = array();
+
+  // Start a list of area IDs to check.
+  $area_tids = array();
+
+  // If viewing an asset, display a message if its current location has
+  // an active REI.
+  if ($type == 'farm_asset' && !empty($build['#entity'])) {
+
+    // Alias the asset.
+    $asset = $build['#entity'];
+
+    // Save the assets current location.
+    $areas = farm_movement_asset_location($asset);
+
+    // Save the area tids to check later.
+    foreach ($areas as $area) {
+      $area_tids[] = $area->tid;
+    }
+  }
+
   // If viewing a taxonomy term that is an area, display a warning message if
   // an input log defines an active REI.
   if ($type == 'taxonomy_term' && !empty($build['#term'])) {
@@ -70,6 +92,13 @@ function farm_rei_entity_view_alter(&$build, $type) {
     if ($term->vocabulary_machine_name != 'farm_areas') {
       return;
     }
+
+    // Save the area tid to check later.
+    $area_tids = array($term->tid);
+  }
+
+  // Get all input logs that reference saved areas.
+  if (!empty($area_tids)) {
 
     // Start a query for input logs.
     $query = farm_log_query(REQUEST_TIME, TRUE, 'farm_input', FALSE);
@@ -85,47 +114,47 @@ function farm_rei_entity_view_alter(&$build, $type) {
     $query->innerJoin('field_data_field_farm_area', 'ss_fdffa', "ss_fdffa.entity_type = 'log' AND ss_fdffa.entity_id = ss_log.id AND ss_fdffa.deleted = 0");
 
     // Only include logs that reference the area.
-    $query->where('ss_fdffa.field_farm_area_tid = ' . $term->tid);
+    $query->where('ss_fdffa.field_farm_area_tid IN (:tids)', array(':tids' => $area_tids));
 
+    // Execute query.
     $result = $query->execute();
-    foreach ($result as $row) {
 
-      // If the log ID is empty, skip it.
-      if (empty($row->id)) {
-        continue;
-      }
+    // Get log IDs.
+    $log_ids = $result->fetchCol();
 
-      // Load the log.
-      $log = log_load($row->id);
+    // Load logs if any are found.
+    if (!empty($log_ids)) {
+      $logs = log_load_multiple($log_ids);
+    }
+  }
 
-      // Check if the log sets an REI.
-      $rei_expiration = farm_rei_log_rei_expiration($log);
+  // Check all logs for an active REI.
+  foreach ($logs as $log) {
 
-      // If the log doesn't set an REI, or it has expired, skip it.
-      if (empty($rei_expiration) || $rei_expiration < REQUEST_TIME) {
-        continue;
-      }
+    // Check if the log sets an REI.
+    $rei_expiration = farm_rei_log_rei_expiration($log);
 
-      // Format REI expiration timestamp.
-      $rei_expiration_string = strftime('%b %d, %Y at %r', $rei_expiration);
-
-      // Get the log URL and name.
-      $log_uri = entity_uri('log', $log);
-      $log_path = $log_uri['path'];
-      $log_name = entity_label('log', $log);
-
-      // Display a warning message referencing the input log.
-      $args = array(
-        '@rei_expiration' => $rei_expiration_string,
-        '!log_path' => url($log_path),
-        '%log_name' => $log_name,
-      );
-      $message = t('This area has restricted-entry until @rei_expiration. See <a href="!log_path">%log_name</a> for details.', $args);
-      drupal_set_message($message, 'warning');
+    // If the log doesn't set an REI, or it has expired, skip it.
+    if (empty($rei_expiration) || $rei_expiration < REQUEST_TIME) {
+      continue;
     }
 
-    // Return after handling an area view.
-    return;
+    // Format REI expiration timestamp.
+    $rei_expiration_string = strftime('%b %d, %Y at %r', $rei_expiration);
+
+    // Get the log URL and name.
+    $log_uri = entity_uri('log', $log);
+    $log_path = $log_uri['path'];
+    $log_name = entity_label('log', $log);
+
+    // Display a warning message referencing the input log.
+    $args = array(
+      '@rei_expiration' => $rei_expiration_string,
+      '!log_path' => url($log_path),
+      '%log_name' => $log_name,
+    );
+    $message = t('This area has restricted-entry until @rei_expiration. See <a href="!log_path">%log_name</a> for details.', $args);
+    drupal_set_message($message, 'warning');
   }
 
   // If the type is not a log, bail.
