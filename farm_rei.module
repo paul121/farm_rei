@@ -76,8 +76,10 @@ function farm_rei_entity_view_alter(&$build, $type) {
     $log_wrapper = entity_metadata_wrapper('log', $log);
 
     // Save all areas the log references.
-    foreach ($log_wrapper->field_farm_area as $area) {
-      $area_tids[] = $area->tid->value();
+    if (!empty($log_wrapper->field_farm_area)) {
+      foreach ($log_wrapper->field_farm_area as $area) {
+        $area_tids[] = $area->tid->value();
+      }
     }
 
     // Check if it is an input log.
@@ -226,7 +228,10 @@ function farm_rei_build_area_message($log, $done = TRUE) {
   $log_wrapper = entity_metadata_wrapper('log', $log);
 
   // Check if the log references any areas.
-  $count_areas = count($log_wrapper->field_farm_area);
+  $count_areas = 0;
+  if (!empty($log_wrapper->field_farm_area)) {
+    $count_areas = count($log_wrapper->field_farm_area);
+  }
 
   // If the log doesn't reference any areas, bail.
   if ($count_areas == 0) {
