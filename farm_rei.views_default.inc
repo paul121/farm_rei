@@ -96,26 +96,11 @@ function farm_rei_views_default_views() {
   $handler->display->display_options['filters']['type']['value'] = array(
     'farm_input' => 'farm_input',
   );
-  /* Filter criterion: Log: Done */
-  $handler->display->display_options['filters']['done']['id'] = 'done';
-  $handler->display->display_options['filters']['done']['table'] = 'log';
-  $handler->display->display_options['filters']['done']['field'] = 'done';
-  $handler->display->display_options['filters']['done']['value'] = '1';
-  /* Filter criterion: Field: Restricted-entry interval (field_farm_rei) */
-  $handler->display->display_options['filters']['field_farm_rei_value']['id'] = 'field_farm_rei_value';
-  $handler->display->display_options['filters']['field_farm_rei_value']['table'] = 'field_data_field_farm_rei';
-  $handler->display->display_options['filters']['field_farm_rei_value']['field'] = 'field_farm_rei_value';
-  $handler->display->display_options['filters']['field_farm_rei_value']['operator'] = '>=';
-  $handler->display->display_options['filters']['field_farm_rei_value']['value']['value'] = '0';
-  /* Filter criterion: Date: Date (log) */
-  $handler->display->display_options['filters']['date_filter']['id'] = 'date_filter';
-  $handler->display->display_options['filters']['date_filter']['table'] = 'log';
-  $handler->display->display_options['filters']['date_filter']['field'] = 'date_filter';
-  $handler->display->display_options['filters']['date_filter']['operator'] = '<=';
-  $handler->display->display_options['filters']['date_filter']['default_date'] = 'now';
-  $handler->display->display_options['filters']['date_filter']['date_fields'] = array(
-    'log.timestamp' => 'log.timestamp',
-  );
+  /* Filter criterion: Log: Log REI status */
+  $handler->display->display_options['filters']['rei_status']['id'] = 'rei_status';
+  $handler->display->display_options['filters']['rei_status']['table'] = 'field_data_field_farm_rei';
+  $handler->display->display_options['filters']['rei_status']['field'] = 'rei_status';
+  $handler->display->display_options['filters']['rei_status']['value'] = 'active';
 
   /* Display: Block Active REI */
   $handler = $view->new_display('block', 'Block Active REI', 'block_active_rei');

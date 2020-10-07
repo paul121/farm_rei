@@ -13,3 +13,4 @@ features[field_instance][] = log-farm_input-field_farm_rei
 features[field_instance][] = taxonomy_term-farm_materials-field_farm_rei
 features[views_view][] = farm_rei
 features_exclude[dependencies][ctools] = ctools
+files[] = views/handlers/farm_rei_handler_filter_rei_status.inc
