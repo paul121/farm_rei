@@ -104,6 +104,87 @@ function farm_rei_views_default_views() {
 
   /* Display: Block Active REI */
   $handler = $view->new_display('block', 'Block Active REI', 'block_active_rei');
+
+  /* Display: Feed */
+  $handler = $view->new_display('feed', 'Feed', 'feed');
+  $handler->display->display_options['pager']['type'] = 'none';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
+  $handler->display->display_options['style_plugin'] = 'views_geojson_feed';
+  $handler->display->display_options['style_options']['data_source']['value'] = 'wkt';
+  $handler->display->display_options['style_options']['data_source']['latitude'] = 'done';
+  $handler->display->display_options['style_options']['data_source']['longitude'] = 'done';
+  $handler->display->display_options['style_options']['data_source']['geofield'] = 'field_farm_geofield';
+  $handler->display->display_options['style_options']['data_source']['wkt'] = 'field_farm_geofield';
+  $handler->display->display_options['style_options']['data_source']['name_field'] = 'field_farm_area';
+  $handler->display->display_options['style_options']['data_source']['description_field'] = 'nothing';
+  $handler->display->display_options['style_options']['jsonp_prefix'] = '';
+  $handler->display->display_options['defaults']['empty'] = FALSE;
+  $handler->display->display_options['defaults']['fields'] = FALSE;
+  /* Field: Log: Done */
+  $handler->display->display_options['fields']['done']['id'] = 'done';
+  $handler->display->display_options['fields']['done']['table'] = 'log';
+  $handler->display->display_options['fields']['done']['field'] = 'done';
+  $handler->display->display_options['fields']['done']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['done']['not'] = 0;
+  /* Field: Log: Log ID */
+  $handler->display->display_options['fields']['id']['id'] = 'id';
+  $handler->display->display_options['fields']['id']['table'] = 'log';
+  $handler->display->display_options['fields']['id']['field'] = 'id';
+  $handler->display->display_options['fields']['id']['exclude'] = TRUE;
+  /* Field: Log: Timestamp */
+  $handler->display->display_options['fields']['timestamp']['id'] = 'timestamp';
+  $handler->display->display_options['fields']['timestamp']['table'] = 'log';
+  $handler->display->display_options['fields']['timestamp']['field'] = 'timestamp';
+  $handler->display->display_options['fields']['timestamp']['label'] = 'Start timestamp';
+  $handler->display->display_options['fields']['timestamp']['alter']['make_link'] = TRUE;
+  $handler->display->display_options['fields']['timestamp']['alter']['path'] = 'log/[id]';
+  $handler->display->display_options['fields']['timestamp']['date_format'] = 'short';
+  $handler->display->display_options['fields']['timestamp']['second_date_format'] = 'long';
+  /* Field: Field: Restricted-entry interval */
+  $handler->display->display_options['fields']['field_farm_rei_1']['id'] = 'field_farm_rei_1';
+  $handler->display->display_options['fields']['field_farm_rei_1']['table'] = 'field_data_field_farm_rei';
+  $handler->display->display_options['fields']['field_farm_rei_1']['field'] = 'field_farm_rei';
+  $handler->display->display_options['fields']['field_farm_rei_1']['label'] = 'REI (days)';
+  $handler->display->display_options['fields']['field_farm_rei_1']['settings'] = array(
+    'thousand_separator' => '',
+    'prefix_suffix' => 1,
+  );
+  /* Field: Log: Areas */
+  $handler->display->display_options['fields']['field_farm_area']['id'] = 'field_farm_area';
+  $handler->display->display_options['fields']['field_farm_area']['table'] = 'field_data_field_farm_area';
+  $handler->display->display_options['fields']['field_farm_area']['field'] = 'field_farm_area';
+  $handler->display->display_options['fields']['field_farm_area']['delta_offset'] = '0';
+  /* Field: Log: Name */
+  $handler->display->display_options['fields']['name']['id'] = 'name';
+  $handler->display->display_options['fields']['name']['table'] = 'log';
+  $handler->display->display_options['fields']['name']['field'] = 'name';
+  $handler->display->display_options['fields']['name']['alter']['make_link'] = TRUE;
+  $handler->display->display_options['fields']['name']['alter']['path'] = 'log/[id]';
+  /* Field: Log: Materials */
+  $handler->display->display_options['fields']['field_farm_material']['id'] = 'field_farm_material';
+  $handler->display->display_options['fields']['field_farm_material']['table'] = 'field_data_field_farm_material';
+  $handler->display->display_options['fields']['field_farm_material']['field'] = 'field_farm_material';
+  $handler->display->display_options['fields']['field_farm_material']['delta_offset'] = '0';
+  /* Field: Field: Geometry */
+  $handler->display->display_options['fields']['field_farm_geofield']['id'] = 'field_farm_geofield';
+  $handler->display->display_options['fields']['field_farm_geofield']['table'] = 'field_data_field_farm_geofield';
+  $handler->display->display_options['fields']['field_farm_geofield']['field'] = 'field_farm_geofield';
+  $handler->display->display_options['fields']['field_farm_geofield']['click_sort_column'] = 'geom';
+  $handler->display->display_options['fields']['field_farm_geofield']['settings'] = array(
+    'data' => 'full',
+  );
+  $handler->display->display_options['fields']['field_farm_geofield']['delta_offset'] = '0';
+  /* Field: Global: Custom text */
+  $handler->display->display_options['fields']['nothing']['id'] = 'nothing';
+  $handler->display->display_options['fields']['nothing']['table'] = 'views';
+  $handler->display->display_options['fields']['nothing']['field'] = 'nothing';
+  $handler->display->display_options['fields']['nothing']['label'] = 'Description';
+  $handler->display->display_options['fields']['nothing']['alter']['text'] = '<div><strong>Restricted Entry</strong></div>
+<div>Start: [timestamp]</div>
+<div>Duration: [field_farm_rei_1] days</div>
+<div>Details: [name]</div>
+';
+  $handler->display->display_options['path'] = 'farm/areas/active-rei/geojson';
   $export['farm_rei'] = $view;
 
   return $export;
