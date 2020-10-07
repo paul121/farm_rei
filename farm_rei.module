@@ -55,6 +55,18 @@ function farm_rei_log_presave($entity) {
 }
 
 /**
+ * Implements hook_views_query_alter().
+ */
+function farm_rei_views_query_alter(&$view, &$query) {
+  // Alter the block_active_rei query to only load logs with an active rei.
+  if ($view->name == 'farm_rei') {
+    if ($view->current_display == 'block_active_rei') {
+      $query->add_where_expression(0, 'log.timestamp  >= ' . REQUEST_TIME . ' - field_data_field_farm_rei.field_farm_rei_value * 86400');
+    }
+  }
+}
+
+/**
  * Implements hook_entity_view_alter().
  */
 function farm_rei_entity_view_alter(&$build, $type) {
