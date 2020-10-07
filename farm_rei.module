@@ -5,6 +5,8 @@
  * Farm REI module.
  */
 
+include_once 'farm_rei.features.inc';
+
 /**
  * Implements hook_ENTITY_TYPE_presave().
  *
