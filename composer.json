@@ -1,0 +1,18 @@
+{
+    "name": "drupal/farm_rei",
+    "description": "Restricted-entry interval features for farmOS.",
+    "type": "drupal-module",
+    "homepage": "https://www.drupal.org/project/farm_rei",
+    "license": "GPL-2.0-or-later",
+    "support": {
+        "docs": "https://farmOS.org/guide",
+        "forum": "https://farmOS.discourse.group",
+        "chat": "https://matrix.to/#/#farmOS:matrix.org"
+    },
+    "authors": [
+        {
+            "name": "Paul Weidner",
+            "email": "paul.weidner@gamil.com"
+        }
+    ]
+}

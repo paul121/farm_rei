@@ -1,0 +1,5 @@
+name: REI
+description: Restricted-entry interval features for farmOS.
+type: module
+package: farmOS Contrib
+core_version_requirement: ^9
