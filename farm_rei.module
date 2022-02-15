@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * @file
+ * Contains farm_rei.module.
+ */
+
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\entity\BundleFieldDefinition;
+
+/**
+ * Implements hook_farm_entity_bundle_field_info().
+ */
+function farm_rei_farm_entity_bundle_field_info(EntityTypeInterface $entity_type, string $bundle) {
+  $fields = [];
+
+  // Add an rei field to input logs.
+  if ($entity_type->id() == 'log' && $bundle === 'input') {
+    $fields['rei'] = BundleFieldDefinition::create('integer')
+      ->setLabel(t('Restricted entry interval'))
+      ->setRevisionable(TRUE)
+      ->setCardinality(1)
+      ->setDisplayConfigurable('view', TRUE)
+      ->setDisplayConfigurable('form', TRUE)
+      ->setSettings([
+        'min' => 0,
+        'suffix' => ' day|days',
+      ])
+      ->setDisplayOptions('view', [
+        'label' => 'inline',
+        'type' => 'number_integer',
+        'settings' => [
+          'prefix_suffix' => TRUE,
+          'display_label' => TRUE,
+        ],
+        'weight' => -25,
+      ])
+      ->setDisplayOptions('form', [
+        'type' => 'number',
+        'weight' => -25,
+      ]);
+  }
+
+  return $fields;
+}
