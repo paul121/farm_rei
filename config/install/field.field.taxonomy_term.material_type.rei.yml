@@ -1,0 +1,25 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.rei
+    - taxonomy.vocabulary.material_type
+  enforced:
+    module:
+      - farm_rei
+id: taxonomy_term.material_type.rei
+field_name: rei
+entity_type: taxonomy_term
+bundle: material_type
+label: 'Restricted entry interval'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: 0
+  max: null
+  prefix: ''
+  suffix: ' day|days'
+field_type: integer
