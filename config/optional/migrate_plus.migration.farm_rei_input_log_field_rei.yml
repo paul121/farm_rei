@@ -1,0 +1,44 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - farm_migrate
+      - farm_rei
+id: farm_rei_input_log_field_rei
+label: 'Input log REI field'
+migration_group: farm_migrate_log
+migration_tags:
+  - 'Drupal 7'
+  - 'farmOS 1.x'
+class: Drupal\migrate\Plugin\Migration
+field_plugin_method: null
+cck_plugin_method: null
+source:
+  plugin: d7_farm_log
+  bundle: farm_input
+destination:
+  plugin: 'entity:log'
+process:
+  # Look up input logs created by farm_migrate_log_input.
+  id:
+    -
+      plugin: migration_lookup
+      migration: farm_migrate_log_input
+      source: id
+      no_stub: true
+    # If no log was found in previous migrations, skip the row.
+    -
+      plugin: skip_on_empty
+      method: row
+  rei:
+    -
+      plugin: get
+      source: field_farm_rei
+    -
+      plugin: skip_on_empty
+      method: row
+migration_dependencies:
+  required:
+    - farm_migrate_log_input
+  optional: {  }
