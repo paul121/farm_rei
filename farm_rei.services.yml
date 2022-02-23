@@ -1,0 +1,5 @@
+services:
+  farm_rei.log_subscriber:
+    class: Drupal\farm_rei\EventSubscriber\LogEventSubscriber
+    tags:
+      - { name: 'event_subscriber' }
