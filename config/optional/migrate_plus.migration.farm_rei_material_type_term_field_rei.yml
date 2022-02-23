@@ -1,9 +1,10 @@
 langcode: en
 status: true
 dependencies:
+  module:
+    - farm_migrate
   enforced:
     module:
-      - farm_migrate
       - farm_rei
 id: farm_rei_material_type_term_field_rei
 label: 'Material type term REI field'
