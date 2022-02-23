@@ -1,0 +1,14 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - farm_migrate
+  enforced:
+    module:
+      - farm_rei
+id: farm_rei
+label: 'farmOS 1.x REI Migration'
+description: 'Migrates REI fields farmOS 1.x to farmOS 2.x'
+source_type: 'farmOS 1.x'
+module: null
+shared_configuration: null
