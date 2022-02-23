@@ -24,7 +24,7 @@ function farm_rei_farm_entity_bundle_field_info(EntityTypeInterface $entity_type
       ->setDisplayConfigurable('form', TRUE)
       ->setSettings([
         'min' => 0,
-        'suffix' => ' day|days',
+        'suffix' => ' day| days',
       ])
       ->setDisplayOptions('view', [
         'label' => 'inline',
